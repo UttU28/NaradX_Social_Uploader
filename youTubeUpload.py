@@ -13,37 +13,65 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from utils import success, error, info, warning, highlight
+from selenium_config import SeleniumConfig, PlatformUtils, SeleniumUtils
 if os.name == "nt":
     import pyautogui
 
-# HARDCODED VARIABLES - Direct paths
-CHROME_DATA_DIR = r"chromeData\elitevocabulary"  # Direct path to chrome data
-DEBUGGING_PORT = '9004'
-YOUTUBE_CHANNEL_ID = 'UC2z9JFAIFovJsyt2iwKOn3g'  # Replace with your actual channel ID
-CHROMEDRIVER_PATH = r"C:\Users\utsav\OneDrive\Desktop\NaradX_Social_Uploader\chromedriver.exe"  # Direct path to chromedriver
-
-def getChromePath():
-    if os.name == "nt":
-        chromePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-        if not os.path.exists(chromePath):
-            chromePath = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
-    else:
-        chromePath = "/usr/bin/google-chrome"
-        if not os.path.exists(chromePath):
-            chromePath = "/usr/bin/google-chrome-stable"
-        if not os.path.exists(chromePath):
-            chromePath = "/snap/bin/chromium"
-        if not os.path.exists(chromePath):
-            try:
-                chromePath = subprocess.check_output(["which", "google-chrome"], text=True).strip()
-            except subprocess.CalledProcessError:
-                try:
-                    chromePath = subprocess.check_output(["which", "chrome"], text=True).strip()
-                except subprocess.CalledProcessError:
-                    print(error("Chrome executable not found. Please install Chrome."))
-                    sys.exit(1)
+# YOUTUBE UPLOAD CONFIGURATION
+def get_youtube_upload_config():
+    """
+    Get YouTube upload configuration settings
     
-    return chromePath
+    Returns:
+        dict: Configuration settings for YouTube uploads
+    """
+    return {
+        # Video Settings
+        "category": "Entertainment",
+        "audience": "not_for_kids",  # or "for_kids"
+        "visibility": "public",  # "public", "unlisted", "private"
+        "select_first_playlist": True,
+        
+        # Content Settings
+        "default_tags": "GRE, IELTS, vocabulary, english, learning, education, words, study, exam prep, english vocabulary",
+        "title_suffix": " - Vocabulary Word",
+        "description_template": "{word} means to hesitate or refuse to proceed; to stop short and refuse to continue.\n\n#GREprep #IELTSvocab #wordoftheday #englishwithstyle #speaklikeanative #studygram #vocabularyboost #learnenglish #englishreels #explorepage #IELTSpreparation #englishvocabulary #spokenenglish #studymotivation #englishlearning #dailyvocab #englishpractice #fluencygoals #vocabchallenge #englishtips #educationreels #englishgrammar #ieltsvocab #smartvocab",
+        
+        # Timing Settings
+        "wait_after_upload": 3,  # seconds
+        "wait_between_steps": 3,  # seconds
+        "text_typing_delay": 0.5,  # seconds between text chunks
+        
+        # Advanced Settings
+        "expand_advanced_options": True,
+        "add_tags": True,
+        "set_category": True,
+        
+        # Selectors (for maintenance)
+        "selectors": {
+            "title_field": "#textbox[contenteditable='true'][role='textbox']",
+            "description_fields": [
+                "ytcp-social-suggestions-textbox[label='Description'] #textbox[contenteditable='true']",
+                "#description-textarea #textbox[contenteditable='true']",
+                "div[aria-label*='Tell viewers about your video'][contenteditable='true']"
+            ],
+            "tags_input": "#text-input[aria-label='Tags']",
+            "category_dropdown": "#category ytcp-dropdown-trigger",
+            "entertainment_category": [
+                "tp-yt-paper-item[test-id='CREATOR_VIDEO_CATEGORY_ENTERTAINMENT']",
+                "#text-item-3"
+            ],
+            "playlist_dropdown": [
+                "ytcp-dropdown-trigger[aria-label*='Select playlists']",
+                "ytcp-dropdown-trigger[aria-label*='Select']",
+                "ytcp-text-dropdown-trigger"
+            ],
+            "not_for_kids": "tp-yt-paper-radio-button[name='VIDEO_MADE_FOR_KIDS_NOT_MFK']",
+            "public_radio": "tp-yt-paper-radio-button[name='PUBLIC']",
+            "next_button": "#next-button",
+            "done_button": "#done-button"
+        }
+    }
 
 def fillTitleAndDescription(driver, title, description):
     try:
@@ -57,35 +85,10 @@ def fillTitleAndDescription(driver, title, description):
         titleField.click()
         time.sleep(0.5)
         
-        # Clear title field with multiple fallback methods
-        try:
-            titleField.send_keys(Keys.CONTROL + "a")
-            titleField.send_keys(Keys.DELETE)
-        except AttributeError:
-            # Fallback 1: Try using ActionChains for Ctrl+A
-            try:
-                actions = ActionChains(driver)
-                actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform()
-                titleField.send_keys(Keys.DELETE)
-            except:
-                # Fallback 2: Use JavaScript to clear
-                driver.execute_script("arguments[0].innerText = ''", titleField)
-        
+        # Clear and set title using utility functions
+        SeleniumUtils.clear_field_with_fallback(driver, titleField)
         time.sleep(0.5)
-        
-        # Try chunked typing for title (like Instagram)
-        try:
-            chunk_size = 20
-            for i in range(0, len(title), chunk_size):
-                chunk = title[i:i+chunk_size]
-                titleField.send_keys(chunk)
-                time.sleep(0.3)  # Small pause between chunks
-        except Exception:
-            # Fallback: Use JavaScript to set title
-            try:
-                driver.execute_script("arguments[0].innerText = arguments[1]", titleField, title)
-            except Exception:
-                titleField.send_keys(title)  # Last resort
+        SeleniumUtils.set_text_with_fallback(driver, titleField, title)
         
         print(success("✅ Title set"))
         
@@ -110,32 +113,14 @@ def fillTitleAndDescription(driver, title, description):
             descriptionField.click()
             time.sleep(0.5)
             
-            # Clear description field with multiple fallback methods
-            try:
-                descriptionField.send_keys(Keys.CONTROL + "a")
-                descriptionField.send_keys(Keys.DELETE)
-            except AttributeError:
-                # Fallback 1: Try using ActionChains for Ctrl+A
-                try:
-                    actions = ActionChains(driver)
-                    actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform()
-                    descriptionField.send_keys(Keys.DELETE)
-                except:
-                    # Fallback 2: Use JavaScript to clear
-                    driver.execute_script("arguments[0].innerText = ''", descriptionField)
-            
+            # Clear and set description using utility functions
+            SeleniumUtils.clear_field_with_fallback(driver, descriptionField)
             time.sleep(0.5)
             
-            # Try chunked typing for description (like Instagram)
-            try:
-                chunk_size = 50
-                for i in range(0, len(description), chunk_size):
-                    chunk = description[i:i+chunk_size]
-                    descriptionField.send_keys(chunk)
-                    time.sleep(0.5)  # Small pause between chunks
+            if SeleniumUtils.set_text_with_fallback(driver, descriptionField, description):
                 print(success("✅ Description set"))
-            except Exception:
-                # Fallback 1: Try alternative selector
+            else:
+                # Try alternative selector as fallback
                 try:
                     descriptionField = WebDriverWait(driver, 5).until(
                         EC.element_to_be_clickable((By.XPATH, "//div[@contenteditable='true' and @aria-label]"))
@@ -143,31 +128,12 @@ def fillTitleAndDescription(driver, title, description):
                     descriptionField.click()
                     time.sleep(0.5)
                     
-                    # Try chunked typing again
-                    chunk_size = 50
-                    for i in range(0, len(description), chunk_size):
-                        chunk = description[i:i+chunk_size]
-                        descriptionField.send_keys(chunk)
-                        time.sleep(0.5)
-                    print(success("✅ Description set (alternative method)"))
+                    if SeleniumUtils.set_text_with_fallback(driver, descriptionField, description):
+                        print(success("✅ Description set (alternative method)"))
+                    else:
+                        print(warning("⚠️ Could not set description"))
                 except Exception:
-                    # Fallback 2: Use JavaScript to set description
-                    try:
-                        driver.execute_script("arguments[0].innerText = arguments[1]", descriptionField, description)
-                        print(success("✅ Description set (JavaScript method)"))
-                    except Exception:
-                        # Fallback 3: Try to set description in smaller chunks with JavaScript
-                        try:
-                            driver.execute_script("arguments[0].innerText = ''", descriptionField)
-                            chunk_size = 50
-                            for i in range(0, len(description), chunk_size):
-                                chunk = description[i:i+chunk_size]
-                                current = driver.execute_script("return arguments[0].innerText", descriptionField)
-                                driver.execute_script("arguments[0].innerText = arguments[1]", descriptionField, current + chunk)
-                                time.sleep(0.5)
-                            print(success("✅ Description set (JavaScript chunked method)"))
-                        except Exception:
-                            print(warning("⚠️ Could not set description"))
+                    print(warning("⚠️ Could not set description"))
         else:
             print(warning("⚠️ Description field not found"))
         
@@ -283,23 +249,11 @@ def addTags(driver, tags):
         tagsInput.click()
         time.sleep(0.5)
         
-        # Try chunked typing for tags (like Instagram)
-        try:
-            chunk_size = 30
-            for i in range(0, len(tags), chunk_size):
-                chunk = tags[i:i+chunk_size]
-                tagsInput.send_keys(chunk)
-                time.sleep(0.3)  # Small pause between chunks
+        # Set tags using utility functions
+        if SeleniumUtils.set_text_with_fallback(driver, tagsInput, tags):
             print(success("✅ Tags added"))
-        except Exception:
-            # Fallback: Use JavaScript to set tags
-            try:
-                driver.execute_script("arguments[0].value = arguments[1]", tagsInput, tags)
-                print(success("✅ Tags added (JavaScript method)"))
-            except Exception:
-                # Last resort: simple send_keys
-                tagsInput.send_keys(tags)
-                print(success("✅ Tags added (simple method)"))
+        else:
+            print(warning("⚠️ Could not add tags"))
         
     except Exception as e:
         print(error(f"❌ Tags error: {e}"))
@@ -377,15 +331,8 @@ def setPublicAndSave(driver):
         return False
     
 def handleFileUpload(driver, videoPath):
-    """Handle file upload for Windows using pyautogui"""
-    try:
-        pyautogui.typewrite(videoPath, interval=0.05)
-        time.sleep(0.5)
-        pyautogui.press('enter')
-        print(success("✅ File selected (Windows)"))
-    except Exception as e:
-        print(error(f"❌ File upload error: {e}"))
-        raise
+    """Handle file upload using platform utilities"""
+    PlatformUtils.handle_file_upload(videoPath)
 
 def clickCreateAndUpload(driver, videoPath):
     try:
@@ -435,7 +382,7 @@ def clickCreateAndUpload(driver, videoPath):
         print(error(f"❌ Upload initiation error: {e}"))
         raise
 
-def uploadToYoutube(videoPath, title, description, tags="GRE, IELTS, vocabulary, english, learning, education, words, study, exam prep, english vocabulary"):
+def uploadToYoutube(videoPath, title, description, tags=None, config=None):
     """
     Upload a video to YouTube
     
@@ -443,7 +390,8 @@ def uploadToYoutube(videoPath, title, description, tags="GRE, IELTS, vocabulary,
         videoPath (str): Full path to the video file
         title (str): Video title
         description (str): Video description
-        tags (str): Video tags (comma separated)
+        tags (str): Video tags (comma separated, optional)
+        config (dict): Configuration settings (optional)
     
     Returns:
         bool: Whether the upload was successful
@@ -451,42 +399,28 @@ def uploadToYoutube(videoPath, title, description, tags="GRE, IELTS, vocabulary,
     start_time = time.time()
     
     try:
+        # Load configuration
+        if config is None:
+            config = get_youtube_upload_config()
+        
+        # Use default tags if not provided
+        if tags is None:
+            tags = config["default_tags"]
+        
         print(highlight(f"\n=== YouTube Upload Started ==="))
         print(info(f"Video: {os.path.basename(videoPath)}"))
         print(info(f"Title: {title}"))
         
-        # Create chrome data directory if it doesn't exist
-        os.makedirs(CHROME_DATA_DIR, exist_ok=True)
-        
-        chromePath = getChromePath()
-        channel_id = YOUTUBE_CHANNEL_ID
-
+        chrome_data_dir = SeleniumConfig.CHROME_DATA_DIR
+        channel_id = SeleniumConfig.YOUTUBE_CHANNEL_ID
         url = f'https://studio.youtube.com/channel/{channel_id}'
         
         osName = "Windows" if os.name == "nt" else "Ubuntu"
         print(highlight(f"🚀 YouTube Upload ({osName})"))
         print(info("="*50))
         
-        chromeArgs = [
-            chromePath,
-            f"--remote-debugging-port={DEBUGGING_PORT}",
-            f"--user-data-dir={CHROME_DATA_DIR}",
-            "--disable-notifications",
-            "--no-first-run",
-            "--no-default-browser-check",
-            "--disable-blink-features=AutomationControlled",
-            url
-        ]
-        
-        chromeProcess = subprocess.Popen(chromeArgs)
-        time.sleep(2)
-        
-        chromeOptions = Options()
-        chromeOptions.add_experimental_option("debuggerAddress", f"localhost:{DEBUGGING_PORT}")
-        
-        # Use the specific chromedriver
-        service = Service(executable_path=CHROMEDRIVER_PATH)
-        driver = webdriver.Chrome(service=service, options=chromeOptions)
+        chromeProcess = SeleniumConfig.start_chrome_process(chrome_data_dir, url)
+        driver = SeleniumConfig.create_driver()
         
         print(success(f"✅ Connected to Chrome ({osName})"))
         
@@ -508,7 +442,7 @@ def uploadToYoutube(videoPath, title, description, tags="GRE, IELTS, vocabulary,
         time.sleep(3)
         
         uploadSuccess = setPublicAndSave(driver)
-        time.sleep(10)
+        time.sleep(config["wait_after_upload"])
         
         print(info("="*50))
         if uploadSuccess:
@@ -518,18 +452,7 @@ def uploadToYoutube(videoPath, title, description, tags="GRE, IELTS, vocabulary,
         print(info("="*50))
         
         # Close Chrome session
-        try:
-            driver.quit()
-            print(info("🔒 Closing Chrome session..."))
-            chromeProcess.terminate()
-            chromeProcess.wait(timeout=5)
-            print(success("✅ Chrome session closed"))
-        except Exception as e:
-            print(warning(f"⚠️ Error closing Chrome: {e}"))
-            try:
-                chromeProcess.kill()
-            except:
-                pass
+        SeleniumConfig.close_chrome_session(driver, chromeProcess)
         
         end_time = time.time()
         duration = end_time - start_time
@@ -547,23 +470,16 @@ def uploadToYoutube(videoPath, title, description, tags="GRE, IELTS, vocabulary,
         print(error(f"❌ YouTube upload error: {e}"))
         # Cleanup on error
         try:
-            if 'driver' in locals():
-                driver.quit()
-            if 'chromeProcess' in locals():
-                chromeProcess.terminate()
-                chromeProcess.wait(timeout=5)
+            if 'driver' in locals() and 'chromeProcess' in locals():
+                SeleniumConfig.close_chrome_session(driver, chromeProcess)
         except:
-            try:
-                if 'chromeProcess' in locals():
-                    chromeProcess.kill()
-            except:
-                pass
+            pass
         return False
 
 
 if __name__ == "__main__":
     # Example usage with direct video path
-    videoPath = r"C:\Users\utsav\Videos\Balk.mp4"  # Direct path to video
+    videoPath = r"C:\Users\utsav\OneDrive\Desktop\NaradX_Social_Uploader\Balk.mp4"  # Direct path to video
     title = "BALK - Vocabulary Word"
     description = "BALK means to hesitate or refuse to proceed; to stop short and refuse to continue.\n\n#GREprep #IELTSvocab #wordoftheday #englishwithstyle #speaklikeanative #studygram #vocabularyboost #learnenglish #englishreels #explorepage #IELTSpreparation #englishvocabulary #spokenenglish #studymotivation #englishlearning #dailyvocab #englishpractice #fluencygoals #vocabchallenge #englishtips #educationreels #englishgrammar #ieltsvocab #smartvocab"
     

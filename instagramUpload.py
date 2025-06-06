@@ -11,43 +11,76 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from utils import success, error, info, warning, highlight
+from selenium_config import SeleniumConfig, PlatformUtils, SeleniumUtils
 
-# HARDCODED VARIABLES - Direct paths
-CHROME_DATA_DIR = r"C:\Users\utsav\chromeData\instagramChromeData"  # Direct path to chrome data
-DEBUGGING_PORT = '9004'
-CHROMEDRIVER_PATH = r"C:\Users\utsav\OneDrive\Desktop\NaradX_Social_Uploader\chromedriver.exe"  # Direct path to chromedriver
-
-def getChromePath():
-    if os.name == "nt":
-        chromePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-        if not os.path.exists(chromePath):
-            chromePath = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
-    else:
-        chromePath = "/usr/bin/google-chrome"
-        if not os.path.exists(chromePath):
-            chromePath = "/usr/bin/google-chrome-stable"
-        if not os.path.exists(chromePath):
-            chromePath = "/snap/bin/chromium"
-        if not os.path.exists(chromePath):
-            try:
-                chromePath = subprocess.check_output(["which", "google-chrome"], text=True).strip()
-            except subprocess.CalledProcessError:
-                try:
-                    chromePath = subprocess.check_output(["which", "chrome"], text=True).strip()
-                except subprocess.CalledProcessError:
-                    print(error("Chrome executable not found. Please install Chrome."))
-                    sys.exit(1)
+# INSTAGRAM UPLOAD CONFIGURATION
+def get_instagram_upload_config():
+    """
+    Get Instagram upload configuration settings
     
-    return chromePath
+    Returns:
+        dict: Configuration settings for Instagram uploads
+    """
+    return {
+        # Video Settings
+        "crop_format": "Original",  # "Original", "Square", "Portrait"
+        "enable_auto_captions": True,
+        "post_type": "reel",  # "reel", "post"
+        
+        # Content Settings
+        "caption_template": "{word} means to hesitate or refuse to proceed; to stop short and refuse to continue.\n\n#GREprep #IELTSvocab #wordoftheday #englishwithstyle #speaklikeanative #studygram #vocabularyboost #learnenglish #englishreels #explorepage #IELTSpreparation #englishvocabulary #spokenenglish #studymotivation #englishlearning #dailyvocab #englishpractice #fluencygoals #vocabchallenge #englishtips #educationreels #englishgrammar #ieltsvocab #smartvocab",
+        "default_caption": "Instagram said 'post daily' — so here's me being obedient.",
+        
+        # Timing Settings
+        "wait_after_upload": 5,  # seconds
+        "wait_between_steps": 2,  # seconds
+        "text_typing_delay": 0.5,  # seconds between text chunks
+        "wait_for_processing": 3,  # seconds
+        
+        # Feature Settings
+        "enable_accessibility": True,
+        "skip_location": True,
+        "skip_music": True,
+        
+        # Selectors (for maintenance)
+        "selectors": {
+            "create_button": "//span[contains(text(), 'Create')]",
+            "select_from_computer": "//button[contains(text(), 'Select from computer')]",
+            "file_input": "//input[@type='file']",
+            "crop_button": [
+                "//div[@class='_abfz _abg1' and @role='button']",
+                "//button[.//svg[@aria-label='Select crop']]",
+                "//svg[@aria-label='Select crop']"
+            ],
+            "original_format": [
+                "//span[text()='Original']",
+                "//span[contains(text(), 'Original')]"
+            ],
+            "next_button": [
+                "//div[@role='button' and text()='Next']",
+                "//*[text()='Next']"
+            ],
+            "caption_field": [
+                "//div[@aria-label='Write a caption...']",
+                "//div[@role='textbox']",
+                "//div[@contenteditable='true']"
+            ],
+            "accessibility_button": [
+                "//span[text()='Accessibility']",
+                "//div[.//span[contains(text(), 'Accessibility')]]"
+            ],
+            "captions_toggle": "//input[@role='switch']",
+            "share_button": [
+                "//div[@role='button' and text()='Share']",
+                "//*[text()='Share']"
+            ],
+            "success_message": "//h3[contains(text(), 'Your reel has been shared')]"
+        }
+    }
 
 def automateInstagramActions(debuggingPort, videoPath, caption="Instagram said 'post daily' — so here's me being obedient."):
     try:
-        chromeOptions = Options()
-        chromeOptions.add_experimental_option("debuggerAddress", f"localhost:{debuggingPort}")
-        
-        # Use the specific chromedriver
-        service = Service(executable_path=CHROMEDRIVER_PATH)
-        driver = webdriver.Chrome(service=service, options=chromeOptions)
+        driver = SeleniumConfig.create_driver()
         
         print(info("Connected to Chrome. Starting automation..."))
         
@@ -57,16 +90,13 @@ def automateInstagramActions(debuggingPort, videoPath, caption="Instagram said '
         createButton.click()
         
         if os.name == "nt":
-            import pyautogui
             selectButton = WebDriverWait(driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Select from computer')]"))
             )
             selectButton.click()
             
             time.sleep(2)
-            pyautogui.write(videoPath, interval=0.05)
-            time.sleep(1)
-            pyautogui.press('enter')
+            PlatformUtils.handle_file_upload(videoPath)
             print(success(f"Selected video: {os.path.basename(videoPath)}"))
         else:
             time.sleep(2)
@@ -159,12 +189,8 @@ def automateInstagramActions(debuggingPort, videoPath, caption="Instagram said '
                 captionField.click()
                 time.sleep(1)
                 
-                # Type the caption in smaller chunks to avoid issues
-                chunk_size = 50
-                for i in range(0, len(caption), chunk_size):
-                    chunk = caption[i:i+chunk_size]
-                    captionField.send_keys(chunk)
-                    time.sleep(0.5)  # Small pause between chunks
+                if not SeleniumUtils.set_text_with_fallback(driver, captionField, caption):
+                    raise Exception("Could not set caption with primary field")
             except Exception:
                 try:
                     captionField = WebDriverWait(driver, 5).until(
@@ -173,28 +199,14 @@ def automateInstagramActions(debuggingPort, videoPath, caption="Instagram said '
                     captionField.click()
                     time.sleep(1)
                     
-                    # Type the caption in smaller chunks to avoid issues
-                    chunk_size = 50
-                    for i in range(0, len(caption), chunk_size):
-                        chunk = caption[i:i+chunk_size]
-                        captionField.send_keys(chunk)
-                        time.sleep(0.5)  # Small pause between chunks
+                    if not SeleniumUtils.set_text_with_fallback(driver, captionField, caption):
+                        raise Exception("Could not set caption with secondary field")
                 except Exception:
                     try:
                         captionField = driver.find_element(By.XPATH, "//div[@contenteditable='true']")
                         
-                        # Use JavaScript to set the caption in case the typing method fails
-                        try:
-                            driver.execute_script("arguments[0].innerText = arguments[1]", captionField, caption)
-                        except:
-                            # Fallback: Try to set the caption in smaller chunks
-                            driver.execute_script("arguments[0].innerText = ''", captionField)
-                            chunk_size = 50
-                            for i in range(0, len(caption), chunk_size):
-                                chunk = caption[i:i+chunk_size]
-                                current = driver.execute_script("return arguments[0].innerText", captionField)
-                                driver.execute_script("arguments[0].innerText = arguments[1]", captionField, current + chunk)
-                                time.sleep(0.5)
+                        if not SeleniumUtils.set_text_with_fallback(driver, captionField, caption):
+                            raise Exception("Could not set caption with fallback field")
                     except Exception:
                         raise Exception("Could not enter caption")
             
@@ -283,28 +295,34 @@ def automateInstagramActions(debuggingPort, videoPath, caption="Instagram said '
         print(error(f"Error: {e}"))
         return False
 
-def uploadToInstagram(videoPath, caption):
+def uploadToInstagram(videoPath, caption=None, config=None):
     """
     Upload a video to Instagram
     
     Args:
         videoPath (str): Full path to the video file
-        caption (str): The caption to use for the Instagram post
+        caption (str): The caption to use for the Instagram post (optional)
+        config (dict): Configuration settings (optional)
     
     Returns:
         bool: Whether the upload was successful
     """
     start_time = time.time()
     
+    # Load configuration
+    if config is None:
+        config = get_instagram_upload_config()
+    
+    # Use default caption if not provided
+    if caption is None:
+        caption = config["default_caption"]
+    
     print(highlight(f"\n=== Instagram Upload Started ==="))
     print(info(f"Video: {os.path.basename(videoPath)}"))
     print(info(f"Caption: {caption[:50]}..."))
     
     try:
-        # Create chrome data directory if it doesn't exist
-        os.makedirs(CHROME_DATA_DIR, exist_ok=True)
-        
-        chromePath = getChromePath()
+        chrome_data_dir = SeleniumConfig.CHROME_DATA_DIR
         
         if not os.path.exists(videoPath):
             print(error(f"Error: Video file {videoPath} not found"))
@@ -314,23 +332,12 @@ def uploadToInstagram(videoPath, caption):
         
         print(info(f"Starting upload process..."))
         
-        chromeArgs = [
-            chromePath,
-            f"--remote-debugging-port={DEBUGGING_PORT}",
-            f"--user-data-dir={CHROME_DATA_DIR}",
-            "--disable-notifications",
-            "--no-first-run",
-            "--no-default-browser-check",
-            "--disable-blink-features=AutomationControlled",
-            url
-        ]
-        
         try:
-            chromeProcess = subprocess.Popen(chromeArgs)
-            time.sleep(5)
+            chromeProcess = SeleniumConfig.start_chrome_process(chrome_data_dir, url)
+            time.sleep(config["wait_for_processing"])
             
             # Call the Instagram automation function
-            result = automateInstagramActions(DEBUGGING_PORT, videoPath, caption)
+            result = automateInstagramActions(SeleniumConfig.DEBUGGING_PORT, videoPath, caption)
             time.sleep(5)
             
             print(info("Complete the process in the browser. Press Ctrl+C to close Chrome."))
@@ -371,7 +378,7 @@ def uploadToInstagram(videoPath, caption):
 
 if __name__ == "__main__":
     # Example usage with direct video path
-    videoPath = r"C:\Users\utsav\Videos\Balk.mp4"  # Direct path to video
+    videoPath = r"C:\Users\utsav\OneDrive\Desktop\NaradX_Social_Uploader\Balk.mp4"  # Direct path to video
     caption = "BALK means to hesitate or refuse to proceed; to stop short and refuse to continue.\n\n#GREprep #IELTSvocab #wordoftheday #englishwithstyle #speaklikeanative #studygram #vocabularyboost #learnenglish #englishreels #explorepage #IELTSpreparation #englishvocabulary #spokenenglish #studymotivation #englishlearning #dailyvocab #englishpractice #fluencygoals #vocabchallenge #englishtips #educationreels #englishgrammar #ieltsvocab #smartvocab"
     
     uploadToInstagram(videoPath, caption) 
