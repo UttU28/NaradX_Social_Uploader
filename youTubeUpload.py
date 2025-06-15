@@ -375,7 +375,7 @@ def clickCreateAndUpload(driver, videoLocation):
     except Exception as e:
         print(error(f"❌ Upload initiation error: {e}"))
 
-def uploadToYoutube(profileName, word, caption, tags, videoLocation):
+def uploadToYoutube(profileName, word, caption, videoLocation):
     startTime = time.time()
     
     try:
@@ -383,6 +383,10 @@ def uploadToYoutube(profileName, word, caption, tags, videoLocation):
         logger = setupLogging("youtube_upload.log", profileName)
         logger.info(f"Starting upload for: {word}")
         logger.info(f"Caption: {caption}")
+        
+        # Get tags from config based on profile
+        tags = profiles[profileName]["tags"]
+        logger.info(f"Using tags: {tags}")
         
         browser = BrowserManager(profiles, profileName)
         url = f'https://studio.youtube.com/channel/{profiles[profileName]["youtubeChannelId"]}'
@@ -448,7 +452,5 @@ if __name__ == "__main__":
     videoLocation = "C:/Users/UtsavChaudhary/OneDrive - EDGE196/Desktop/NaradX_Social_Uploader/Balk.mp4"
     title = videoLocation.split("/")[-1].split(".")[0]
     caption = "BALK means to hesitate or refuse to proceed; to stop short and refuse to continue. \n\n#GREprep #IELTSvocab #wordoftheday #englishwithstyle #speaklikeanative #studygram #vocabularyboost #learnenglish #englishreels #explorepage #IELTSpreparation #englishvocabulary #spokenenglish #studymotivation #englishlearning #dailyvocab #englishpractice #fluencygoals #vocabchallenge #englishtips #educationreels #englishgrammar #ieltsvocab #smartvocab"
-    tags = "GRE, IELTS, vocabulary, english, learning, education, words, study, exam prep, english vocabulary"
-    result = uploadToYoutube("default", title, caption, tags, videoLocation)
-
+    result = uploadToYoutube("elitevocabulary", title, caption, videoLocation)
     print(success("✅ Success") if result else error("❌ Failed"))

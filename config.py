@@ -23,13 +23,13 @@ profiles = {
     "elitevocabulary": {
         "profileName": "elitevocabulary",
         "youtubeChannelId": "UC2z9JFAIFovJsyt2iwKOn3g",
-        "chromeDataDir": os.path.join(basePath, "chromeData", "elitevocabulary"),
-        "debuggingPort": "9004"
+        "debuggingPort": "9004",
+        "tags": "GRE, IELTS, vocabulary, english, learning, education, words, study, exam prep, english vocabulary"
     },
     "wokyabolrahi": {
         "profileName": "wokyabolrahi",
         "youtubeChannelId": "UC2z9JFAIFovJsyt2iwKOn3g",
-        "chromeDataDir": os.path.join(basePath, "chromeData", "wokyabolrahi"),
-        "debuggingPort": "9005"
+        "debuggingPort": "9005",
+        "tags": "GRE, IELTS, vocabulary, english, learning, education, words, study, exam prep, english vocabulary"
     }
 } 

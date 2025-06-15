@@ -6,7 +6,7 @@ import subprocess
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from config import success, error, info, warning, highlight
+from config import success, error, info, warning, highlight, basePath
 
 class BrowserManager:
     def __init__(self, profiles, profileName):
@@ -15,7 +15,7 @@ class BrowserManager:
             sys.exit(1)
             
         self.profile = profiles[profileName]
-        self.chromeDataDir = self.profile["chromeDataDir"]
+        self.chromeDataDir = os.path.join(basePath, "chromeData", self.profile["profileName"])
         self.debuggingPort = self.profile["debuggingPort"]
         self.profileName = profileName
         
@@ -58,10 +58,6 @@ class BrowserManager:
         try:
             chromePath = self.getChromePath()
             userDataDir = self.pathStr(self.chromeDataDir)
-            
-            if not os.path.exists(userDataDir):
-                os.makedirs(userDataDir, exist_ok=True)
-                print(info(f"📁 Created profile directory: {userDataDir}"))
             
             chromeArgs = [
                 chromePath,

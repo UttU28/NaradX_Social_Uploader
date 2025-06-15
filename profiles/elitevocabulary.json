@@ -1,0 +1,125 @@
+{
+  "videos": [
+    {
+      "filename": "Balk.mp4",
+      "title": "BALK - Advanced Vocabulary",
+      "description": "BALK means to hesitate or refuse...",
+      "youtubeUploaded": false,
+      "instagramUploaded": false,
+      "uploadTimestamp": null,
+      "createdAt": "2024-01-15T10:00:00Z",
+      "videoChecked": false,
+      "retryCount": 0
+    },
+    {
+      "filename": "Ephemeral.mp4",
+      "title": "EPHEMERAL - Advanced Vocabulary",
+      "description": "EPHEMERAL means lasting for a very short time; transient or temporary...",
+      "youtubeUploaded": false,
+      "instagramUploaded": false,
+      "uploadTimestamp": null,
+      "createdAt": "2024-01-15T10:00:00Z",
+      "videoChecked": false,
+      "retryCount": 0
+    },
+    {
+      "filename": "Serendipity.mp4",
+      "title": "SERENDIPITY - Word Power",
+      "description": "SERENDIPITY means the occurrence and development of events by chance in a happy or beneficial way...",
+      "youtubeUploaded": false,
+      "instagramUploaded": false,
+      "uploadTimestamp": null,
+      "createdAt": "2024-01-15T10:30:00Z",
+      "videoChecked": false,
+      "retryCount": 0
+    },
+    {
+      "filename": "Mellifluous.mp4",
+      "title": "MELLIFLUOUS - Advanced English",
+      "description": "MELLIFLUOUS means sweet or musical; pleasant to hear...",
+      "youtubeUploaded": false,
+      "instagramUploaded": false,
+      "uploadTimestamp": null,
+      "createdAt": "2024-01-15T11:00:00Z",
+      "videoChecked": false,
+      "retryCount": 0
+    },
+    {
+      "filename": "Quintessential.mp4",
+      "title": "QUINTESSENTIAL - Vocabulary Builder",
+      "description": "QUINTESSENTIAL means representing the most perfect or typical example of a quality or class...",
+      "youtubeUploaded": false,
+      "instagramUploaded": false,
+      "uploadTimestamp": null,
+      "createdAt": "2024-01-15T11:30:00Z",
+      "videoChecked": false,
+      "retryCount": 0
+    },
+    {
+      "filename": "Surreptitious.mp4",
+      "title": "SURREPTITIOUS - Advanced Word",
+      "description": "SURREPTITIOUS means kept secret, especially because it would not be approved of...",
+      "youtubeUploaded": false,
+      "instagramUploaded": false,
+      "uploadTimestamp": null,
+      "createdAt": "2024-01-15T12:00:00Z",
+      "videoChecked": false,
+      "retryCount": 0
+    },
+    {
+      "filename": "Ineffable.mp4",
+      "title": "INEFFABLE - Elite Vocabulary",
+      "description": "INEFFABLE means too great or extreme to be expressed or described in words...",
+      "youtubeUploaded": false,
+      "instagramUploaded": false,
+      "uploadTimestamp": null,
+      "createdAt": "2024-01-15T12:30:00Z",
+      "videoChecked": false,
+      "retryCount": 0
+    },
+    {
+      "filename": "Perspicacious.mp4",
+      "title": "PERSPICACIOUS - Word Master",
+      "description": "PERSPICACIOUS means having a ready insight into and understanding of things...",
+      "youtubeUploaded": false,
+      "instagramUploaded": false,
+      "uploadTimestamp": null,
+      "createdAt": "2024-01-15T13:00:00Z",
+      "videoChecked": false,
+      "retryCount": 0
+    },
+    {
+      "filename": "Ethereal.mp4",
+      "title": "ETHEREAL - Advanced English",
+      "description": "ETHEREAL means extremely delicate and light in a way that seems too perfect for this world...",
+      "youtubeUploaded": false,
+      "instagramUploaded": false,
+      "uploadTimestamp": null,
+      "createdAt": "2024-01-15T13:30:00Z",
+      "videoChecked": false,
+      "retryCount": 0
+    },
+    {
+      "filename": "Labyrinthine.mp4",
+      "title": "LABYRINTHINE - Word Power",
+      "description": "LABYRINTHINE means complicated and confusing; like a labyrinth...",
+      "youtubeUploaded": false,
+      "instagramUploaded": false,
+      "uploadTimestamp": null,
+      "createdAt": "2024-01-15T14:00:00Z",
+      "videoChecked": false,
+      "retryCount": 0
+    },
+    {
+      "filename": "Ubiquitous.mp4",
+      "title": "UBIQUITOUS - Elite Vocabulary",
+      "description": "UBIQUITOUS means present, appearing, or found everywhere...",
+      "youtubeUploaded": false,
+      "instagramUploaded": false,
+      "uploadTimestamp": null,
+      "createdAt": "2024-01-15T14:30:00Z",
+      "videoChecked": false,
+      "retryCount": 0
+    }
+  ]
+}
