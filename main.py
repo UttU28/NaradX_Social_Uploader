@@ -1,13 +1,10 @@
 import os
 from youTubeUpload import uploadToYoutube
 from instagramUpload import uploadToInstagram
-from config import success, error, info, warning, highlight, profiles
-
-# Base path configuration
-basePath = "C:/Users/UtsavChaudhary/OneDrive - EDGE196/Desktop/NaradX_Social_Uploader"
+from config import success, error, info, warning, highlight, profiles, basePath
 
 # Video configuration
-videoLocation = "C:/Users/UtsavChaudhary/OneDrive - EDGE196/Desktop/NaradX_Social_Uploader/Balk.mp4"
+videoLocation = os.path.join(basePath, "Balk.mp4")
 title = videoLocation.split("/")[-1].split(".")[0]
 caption = "BALK means to hesitate or refuse to proceed; to stop short and refuse to continue. #GREprep #IELTSvocab #wordoftheday #englishwithstyle #speaklikeanative #studygram #vocabularyboost #learnenglish #englishreels #explorepage #IELTSpreparation #englishvocabulary #spokenenglish #studymotivation #englishlearning #dailyvocab #englishpractice #fluencygoals #vocabchallenge #englishtips #educationreels #englishgrammar #ieltsvocab #smartvocab"
 tags = "GRE, IELTS, vocabulary, english, learning, education, words, study, exam prep, english vocabulary"  # Default tags

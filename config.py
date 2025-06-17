@@ -4,6 +4,7 @@ Configuration and utility functions for Social Media Uploader
 """
 from colorama import init, Fore, Style
 import os
+import platform
 
 # Initialize colorama
 init(autoreset=True)
@@ -16,7 +17,10 @@ def warning(text): return f"{Fore.YELLOW}{text}{Style.RESET_ALL}"
 def highlight(text): return f"{Fore.MAGENTA}{Style.BRIGHT}{text}{Style.RESET_ALL}"
 
 # Base configuration
-basePath = "C:/Users/UtsavChaudhary/OneDrive - EDGE196/Desktop/NaradX_Social_Uploader"
+if platform.system() == 'Windows':
+    basePath = "C:/Users/UtsavChaudhary/OneDrive - EDGE196/Desktop/NaradX_Social_Uploader"
+else:
+    basePath = "/home/kaka/Desktop/NaradX_Social_Uploader"
 
 # User Profiles
 profiles = {
@@ -32,4 +36,4 @@ profiles = {
         "debuggingPort": "9005",
         "tags": "GRE, IELTS, vocabulary, english, learning, education, words, study, exam prep, english vocabulary"
     }
-} 
+}
